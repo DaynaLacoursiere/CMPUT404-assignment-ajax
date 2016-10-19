@@ -14,3 +14,7 @@ Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle.
 
 
 Collaborated with Lexie Bartlett
+
+
+Learned Flask here: http://flask.pocoo.org/docs/0.11/quickstart/
+
