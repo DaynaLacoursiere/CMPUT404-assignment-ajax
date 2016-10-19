@@ -144,7 +144,10 @@ function getPosition(e) {
 function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
-
+    entity = '/entity/' + entity;
+    sendJSONXMLHTTPRequest(entity, data, function(jsondata){
+        drawNextFrame();
+    });
     //XXX: Send a XHTML Request that updates the entity you just modified!
 
 }
