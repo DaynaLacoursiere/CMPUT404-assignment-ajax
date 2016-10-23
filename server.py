@@ -79,8 +79,11 @@ def hello():
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    # Maybe use request.json()?
-    return None
+    data = json.loads(request.data)
+    for i in data.items():
+        myWorld.update(entity, i[0], i[1])
+    state = json.dumps(myWorld.get(entity))
+    return state
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
