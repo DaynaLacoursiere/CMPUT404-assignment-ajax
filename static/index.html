@@ -22,7 +22,7 @@
     "/>
     <script src="json2.js"></script>
   </head> 
-  <body bgcolor="black" height="100%" width="100%"> 
+  <body bgcolor="pink" height="100%" width="100%"> 
     <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas> 
     <script>
 var canvas = document.getElementById('c');
@@ -30,8 +30,7 @@ var host = window.location.host;
 var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
-
-
+var pinkList = Array("pink","#FFB6C1","#FF69B4","#FF1493","#FFDDF4","#FFB7C5","#FFA6C9","#FF91AF","#E4007C","#FF007F","#FF6FFF")
 function sendJSONXMLHTTPRequest(url, objects, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -49,7 +48,6 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             }
         }
     };
-
     //XXX: POST to a URL
     xhr.open('POST',url,true);
     //XXX: set the mimetype and the accept headers!
@@ -58,44 +56,71 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
     xhr.setRequestHeader("Content-type","application/json");
     xhr.send(JSON.stringify(objects));
 }
-
-
 world = {};
-
 //XXX: TODO Make this prettier!
+//http://www.java2s.com/Tutorials/Javascript/Canvas_How_to/Shape/Draw_Spade_Heart_Club_Diamond.htm
+//This now draws hearts because they are prettier
 function drawCircle(context,entity) {
     with(context) {
         beginPath();              
         lineWidth = 3;
         var x = entity["x"];
         var y = entity["y"];
-        //moveTo(x,y);
-        fillStyle = entity["colour"];
+        fillStyle = pinkList[Math.floor(Math.random()*pinkList.length)]; ;
         strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
+        var height = 40;
+        var width = 40;
+        var topCurveHeight = height * 0.3;
+        moveTo(x, y + topCurveHeight);
+                // top left curve
+          bezierCurveTo(
+          x, y, 
+          x - width / 2, y, 
+          x - width / 2, y + topCurveHeight
+        );
+                
+                // bottom left curve
+        bezierCurveTo(
+          x - width / 2, y + (height + topCurveHeight) / 2, 
+          x, y + (height + topCurveHeight) / 2, 
+          x, y + height
+        );
+                
+                // bottom right curve
+        bezierCurveTo(
+          x, y + (height + topCurveHeight) / 2, 
+          x + width / 2, y + (height + topCurveHeight) / 2, 
+          x + width / 2, y + topCurveHeight
+        );
+                
+                // top right curve
+        bezierCurveTo(
+          x + width / 2, y, 
+          x, y, 
+          x, y + topCurveHeight
+        );
+        
+        fill();
+                    
     }
 }
-
 function prepEntity(entity) {
+    // var pinkList = Array("pink","#FFB6C1","#FF69B4","#FF1493","#FFDDF4","#FFB7C5","#FFA6C9","#FF91AF","#E4007C","#FF007F","#FF6FFF")
     if (!entity["colour"]) {
-        entity["colour"] = "#FF0000";
+        entity["colour"] = pinkList[Math.floor(Math.random()*pinkList.length)]
     }
     if (!entity["radius"]) {
         entity["radius"] = 50;
     }
     return entity;
 }
-
 function clearFrame() {
     with(context) {
-	moveTo(0,0);
-	fillStyle = "#000";
-	fillRect(0,0,W,H);
+    moveTo(0,0);
+    fillStyle = "grey";
+    fillRect(0,0,W,H);
     }
-
 }
-
 // This actually draws the frame
 function renderFrame() {
     clearFrame();
@@ -104,14 +129,11 @@ function renderFrame() {
         drawCircle(context,prepEntity(entity));
     }
 }
-
 var drawNext = true;
-
 // Signals that there's something to be drawn
 function drawNextFrame() {
     drawNext = true;
 }
-
 // This optionally draws the frame, call this if you're not sure if you should update
 // the canvas
 function drawFrame() {
@@ -120,27 +142,23 @@ function drawFrame() {
         drawNext = false;
     }
 }
-
 // This is unpleasent, canvas clicks are not handled well
 // So use this code, it works well on multitouch devices as well.
-
 function getPosition(e) {
-	if ( e.targetTouches && e.targetTouches.length > 0) {
-		var touch = e.targetTouches[0];
-		var x = touch.pageX  - canvas.offsetLeft;
-		var y = touch.pageY  - canvas.offsetTop;
-		return [x,y];
-	} else {
-		var rect = e.target.getBoundingClientRect();
-		var x = e.offsetX || e.pageX - rect.left - window.scrollX;
-		var y = e.offsetY || e.pageY - rect.top  - window.scrollY;
-		var x = e.pageX  - canvas.offsetLeft;
-		var y = e.pageY  - canvas.offsetTop;
-		return [x,y];
-	}
+    if ( e.targetTouches && e.targetTouches.length > 0) {
+        var touch = e.targetTouches[0];
+        var x = touch.pageX  - canvas.offsetLeft;
+        var y = touch.pageY  - canvas.offsetTop;
+        return [x,y];
+    } else {
+        var rect = e.target.getBoundingClientRect();
+        var x = e.offsetX || e.pageX - rect.left - window.scrollX;
+        var y = e.offsetY || e.pageY - rect.top  - window.scrollY;
+        var x = e.pageX  - canvas.offsetLeft;
+        var y = e.pageY  - canvas.offsetTop;
+        return [x,y];
+    }
 }
-
-
 function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
@@ -149,16 +167,13 @@ function addEntity(entity, data) {
         drawNextFrame();
     });
     //XXX: Send a XHTML Request that updates the entity you just modified!
-
 }
-
 var counter = 0;
 function addEntityWithoutName(data) {
     //var name = "X"+Math.floor((Math.random()*100)+1);
     var name = "X"+(counter++)%100;
     addEntity(name,data);
 }
-
 // canvas + mouse/touch is complicated 
 // I give you this because well the mouse/touch stuff is a total
 // pain to get right. This has some out of context bug too.
@@ -195,7 +210,7 @@ mouse = (function() {
                 var pos = getPosition(e);
                 var x = pos[0];
                 var y = pos[1];
-	        self.clicked = 1;
+            self.clicked = 1;
                 self.callListeners(self.mousedowners,x,y,self.clicked,e);
                 //addEntityWithoutName({'x':x,'y':y,'colour':'red'});
             }
@@ -207,8 +222,8 @@ mouse = (function() {
                 var pos = getPosition(e);
                 var x = pos[0];
                 var y = pos[1];
-	        //self.poppin(x,y);
-	        self.clicked = 0;
+            //self.poppin(x,y);
+            self.clicked = 0;
                 self.selected = -1;
                 self.callListeners(self.mouseuppers,x,y,self.clicked,e);
                 //addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
@@ -218,29 +233,29 @@ mouse = (function() {
             self.lasttouch = e;                                         
             return self.mousedown(e);
         },
-	touchend: function(e) {
+    touchend: function(e) {
             var touch = (self.lasttouch)?self.lasttouch:e;
             return self.mouseup(touch);
-	},
-	mousemove: function(e) {
+    },
+    mousemove: function(e) {
             e.preventDefault();
             if (self.wasClicked(e)) {
                 var pos = getPosition(e);
                 var x = pos[0];
                 var y = pos[1];
-	        if (self.clicked != 0) {
-	            //self.squeakin(x,y);
+            if (self.clicked != 0) {
+                //self.squeakin(x,y);
                     self.callListeners(self.mousedraggers,x,y,self.clicked,e);
-	        }
+            }
                 self.callListeners(self.mousemovers,x,y,self.clicked,e);
             }            
-	},
-	touchmove: function(e) {
+    },
+    touchmove: function(e) {
             self.lasttouch = e;                                         
             return self.mousemove(e);
-	},
-	// Install the mouse listeners
-	mouseinstall: function() {
+    },
+    // Install the mouse listeners
+    mouseinstall: function() {
             canvas.addEventListener("mousedown",  self.mousedown, false);
             canvas.addEventListener("mousemove",  self.mousemove, false);
             canvas.addEventListener("mouseup",    self.mouseup, false);
@@ -248,29 +263,29 @@ mouse = (function() {
             canvas.addEventListener("touchstart", self.touchstart, false);
             canvas.addEventListener("touchmove",  self.touchmove, false);
             canvas.addEventListener("touchend",   self.touchend, false);
-	}
+    }
     };
     // Force install!
     self.mouseinstall();
     return self;
 })();
-
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
+ // var pinkList = Array("pink","#FFB6C1","#FF69B4","#FF1493","#FFDDF4","#FFB7C5","#FFA6C9","#FF91AF","#E4007C","#FF007F","#FF6FFF");
+color1 = pinkList[Math.floor(Math.random()*pinkList.length)]; 
+color2 = pinkList[Math.floor(Math.random()*pinkList.length)];
+color3 = pinkList[Math.floor(Math.random()*pinkList.length)];
+
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':color1});
 });
-
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':color2});
 });
-
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
+    addEntityWithoutName({'x':x,'y':y,'colour':color3,
                           'radius':10});
 });
-
-
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
     sendJSONXMLHTTPRequest("http://127.0.0.1:5000/world", null, function(data){
@@ -279,12 +294,8 @@ function update() {
     });
     drawFrame();
 }
-
 // 30 frames per second
 setInterval( update, 1000/30.0);
-
-
-
     </script>
 </body>
 </html>
